@@ -5,6 +5,7 @@ const fs = require('fs-extra')
 const fileUpload = require('express-fileupload');
 const MongoClient = require('mongodb').MongoClient;
 require('dotenv').config()
+const objectId = require('mongodb').ObjectID;
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.yf6o8.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 
@@ -126,6 +127,18 @@ client.connect(err => {
         .toArray((err, documents) => {
             res.send(documents);
         })
+    })
+
+    // update service status 
+    app.patch('/updateStatus/:id', (req, res) => {
+
+        ordersCollection.updateOne({ _id: objectId(req.params.id) },
+            {
+                $set: { status: req.body.serviceStatus }
+            })
+            .then(result => {
+                res.send(result.modifiedCount > 0)
+            })
     })
 
     console.log('database connected');
