@@ -140,8 +140,6 @@ client.connect(err => {
                 res.send(result.modifiedCount > 0)
             })
     })
-
-    console.log('database connected');
 });
 
 
