@@ -26,11 +26,13 @@ client.connect(err => {
     const ordersCollection = client.db("creativeAgency").collection("orders");
     const reviewsCollection = client.db("creativeAgency").collection("reviews");
     const adminsCollection = client.db("creativeAgency").collection("admins");
+    const servicesCollection = client.db("creativeAgency").collection("services");
 
-    // add Order
+    // user section
+    // add Order by user
     app.post('/addOrder', (req, res) => {
         const file = req.files.file;
-        const { name, email, title, description, price } = req.body;
+        const { name, email, title, description, price, status } = req.body;
         const newImg = file.data;
         const encImg = newImg.toString('base64');
 
@@ -40,13 +42,13 @@ client.connect(err => {
             img: Buffer.from(encImg, 'base64')
         };
 
-        ordersCollection.insertOne({ name, email, title, description, price, image })
+        ordersCollection.insertOne({ name, email, title, description, price, status, image })
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
     })
 
-    // user services
+    // user services only
     app.get('/serviceList/:email', (req, res) => {
         const userEmail = req.params.email;
         ordersCollection.find({ email: userEmail })
@@ -55,7 +57,7 @@ client.connect(err => {
         })
     })
 
-    // add review
+    // add review by user
     app.post('/addReview', (req, res) => {
         const review = req.body;
         reviewsCollection.insertOne(review)
@@ -64,7 +66,7 @@ client.connect(err => {
             })
     })
 
-    // get all reviews
+    // get all reviews at home page
     app.get('/reviews', (req, res) => {
         reviewsCollection.find({})
             .toArray((err, documents) => {
@@ -72,8 +74,8 @@ client.connect(err => {
             })
     })
 
-    // admin
-    // all service get for admin
+    // admin section
+    // all service get for admin in service list table
     app.get('/allService', (req, res) => {
         ordersCollection.find({})
         .toArray((err,documents) => {
@@ -94,6 +96,34 @@ client.connect(err => {
     app.get('/isAdmin/:email', (req, res) => {
         const email = req.params.email;
         adminsCollection.find({email: email})
+        .toArray((err, documents) => {
+            res.send(documents);
+        })
+    })
+
+    // add service by admin
+    app.post('/addService', (req, res) => {
+        const file = req.files.file;
+        const { title, description } = req.body;
+        const newImg = file.data;
+        const encImg = newImg.toString('base64');
+
+        var image = {
+            contentType: file.mimetype,
+            size: file.size,
+            img: Buffer.from(encImg, 'base64')
+        };
+       
+        servicesCollection.insertOne({ title, description, image })
+            .then(result => {
+                res.send(result.insertedCount > 0);
+                console.log(result);
+            })
+    })
+
+    // all service show to home page
+    app.get('/loadServices', (req, res) => {
+        servicesCollection.find({})
         .toArray((err, documents) => {
             res.send(documents);
         })
